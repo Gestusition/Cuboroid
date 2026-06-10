@@ -25,6 +25,9 @@ export class PlayerController {
     this.spaceReleased = true;
     this.lastSpaceTap = 0;
     this.lastStepIndex = 0;
+    // Minecraft-style fall damage: track highest Y since last ground contact
+    this.fallStartY = 0;
+    this.isFalling = false;
     this.bindEvents();
   }
 
@@ -52,6 +55,8 @@ export class PlayerController {
     this.velocity.set(0, 0, 0);
     this.yaw = 0;
     this.pitch = -0.1;
+    this.fallStartY = position.y - this.eyeHeight;
+    this.isFalling = false;
     this.syncCamera();
   }
 
@@ -123,6 +128,7 @@ export class PlayerController {
         this.onGround = true;
         const impact = -this.velocity.y;
         
+        // Landing sound
         if (!wasOnGround && impact > 3.0) {
           const feet = this.position.y - this.eyeHeight;
           const blockX = Math.round(this.position.x);
@@ -134,7 +140,16 @@ export class PlayerController {
           }
         }
         
-        if (impact > 10.5 && !this.inWater) this.survival.damage(Math.floor((impact - 8.5) / 2));
+        // Minecraft-style fall damage: based on distance fallen, not velocity
+        if (this.isFalling && !this.inWater && this.mode !== 'creative') {
+          const feetY = this.position.y - this.eyeHeight;
+          const fallDistance = this.fallStartY - feetY;
+          if (fallDistance > 3) {
+            const damage = Math.floor(fallDistance - 3);
+            this.survival.damage(damage);
+          }
+        }
+        this.isFalling = false;
       }
       this.velocity.y = 0;
     } else {
@@ -180,6 +195,25 @@ export class PlayerController {
       this.survival.exert(0.2);
     }
     if (!this.flying && !this.inWater) this.velocity.y -= 23 * delta;
+
+    // Track fall start position (highest Y since leaving ground)
+    const feetY = this.position.y - this.eyeHeight;
+    if (this.onGround) {
+      this.fallStartY = feetY;
+      this.isFalling = false;
+    } else if (feetY > this.fallStartY) {
+      // Going up (jumping) - update start position
+      this.fallStartY = feetY;
+    } else if (!this.isFalling && this.velocity.y < 0) {
+      // Started falling
+      this.isFalling = true;
+    }
+    // Water resets fall tracking
+    if (this.inWater || this.flying) {
+      this.fallStartY = feetY;
+      this.isFalling = false;
+    }
+
     this.onGround = false;
 
     this.moveAxis('x', this.velocity.x * delta);
