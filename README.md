@@ -1,6 +1,6 @@
 # Cuboroid
 
-> ⚠️ **Alpha Release** — This is an experimental, Minecraft-inspired voxel project built entirely in the browser. Expect bugs, missing features, and frequent changes.
+> ⚠️ **Pre-Alpha Release** — This is an experimental, Minecraft-inspired voxel project built entirely in the browser. Expect bugs, missing features, and frequent changes.
 
 A browser-based voxel survival game powered by [Three.js](https://threejs.org/) and deployed on GitHub Pages. Cuboroid explores procedural world generation, survival mechanics, and real-time 3D rendering — all without any native downloads.
 
@@ -25,7 +25,7 @@ npm install
 npm run dev
 ```
 
-## 🎹 Controls
+##  Controls
 
 | Key | Action |
 |-----|--------|
