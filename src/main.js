@@ -56,8 +56,8 @@ renderer.toneMappingExposure = 1.05;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xa98264);
-scene.fog = new THREE.FogExp2(0x9b836e, 0.011);
-const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.06, 260);
+scene.fog = new THREE.FogExp2(0x9b836e, 0.0055);
+const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.06, 520);
 scene.add(camera);
 
 const composer = new EffectComposer(renderer);
@@ -68,7 +68,7 @@ composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
 
 loadingStatus.textContent = 'Chunk çekirdeği hazırlanıyor...';
-const world = new VoxelWorld(scene, { seed: 48271, viewDistance: 2 });
+const world = new VoxelWorld(scene, { seed: 48271, viewDistance: 8 });
 world.generateInitial();
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
@@ -134,10 +134,10 @@ function createLighting() {
   const sun = new THREE.DirectionalLight(0xffc985, 4.5);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.camera.left = -34;
-  sun.shadow.camera.right = 34;
-  sun.shadow.camera.top = 34;
-  sun.shadow.camera.bottom = -34;
+  sun.shadow.camera.left = -50;
+  sun.shadow.camera.right = 50;
+  sun.shadow.camera.top = 50;
+  sun.shadow.camera.bottom = -50;
   sun.shadow.camera.near = 1;
   sun.shadow.camera.far = 100;
   sun.shadow.bias = -0.00045;
@@ -183,7 +183,7 @@ function createWater() {
       }
     `
   });
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(340, 340, 70, 70), material);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(600, 600, 70, 70), material);
   mesh.rotation.x = -Math.PI / 2;
   mesh.position.y = world.waterLevel + 0.48;
   mesh.renderOrder = 2;
@@ -217,7 +217,7 @@ function createClouds() {
   const group = new THREE.Group();
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const material = new THREE.MeshStandardMaterial({ color: 0xffe3c8, roughness: 1, transparent: true, opacity: 0.32, depthWrite: false });
-  for (let c = 0; c < 18; c += 1) {
+  for (let c = 0; c < 40; c += 1) {
     const cloud = new THREE.Group();
     for (let i = 0; i < 3 + Math.floor(random() * 5); i += 1) {
       const piece = new THREE.Mesh(geometry, material);
@@ -225,7 +225,7 @@ function createClouds() {
       piece.scale.set(2 + random() * 3.5, 0.7 + random(), 2 + random() * 3);
       cloud.add(piece);
     }
-    cloud.position.set((random() - 0.5) * 130, 31 + random() * 18, (random() - 0.5) * 130);
+    cloud.position.set((random() - 0.5) * 260, 31 + random() * 18, (random() - 0.5) * 260);
     group.add(cloud);
   }
   scene.add(group);
@@ -233,11 +233,11 @@ function createClouds() {
     update(_time, delta) {
       for (const cloud of group.children) {
         cloud.position.x += delta * 0.55;
-        if (cloud.position.x > 78) cloud.position.x = -78;
+        if (cloud.position.x > 160) cloud.position.x = -160;
       }
       if (player) {
-        group.position.x = Math.round(player.position.x / 80) * 80;
-        group.position.z = Math.round(player.position.z / 80) * 80;
+        group.position.x = Math.round(player.position.x / 160) * 160;
+        group.position.z = Math.round(player.position.z / 160) * 160;
       }
     }
   });
