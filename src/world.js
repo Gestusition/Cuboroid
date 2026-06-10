@@ -92,11 +92,15 @@ export class VoxelWorld {
     const biome = this.getBiome(x, z);
     const broad = fbm(x * 0.012, z * 0.012, this.seed + 101, 5);
     const detail = fbm(x * 0.055, z * 0.055, this.seed + 303, 3);
+    const medium = fbm(x * 0.028, z * 0.028, this.seed + 505, 4);
     const ridge = 1 - Math.abs(fbm(x * 0.008, z * 0.008, this.seed + 909, 4) * 2 - 1);
-    let height = 5 + broad * 9 + detail * 2;
-    if (biome === 'mountains') height += ridge * 16 + broad * 6;
-    if (biome === 'desert') height = 6 + broad * 5 + detail;
-    if (biome === 'plains') height = 7 + broad * 6 + detail;
+    let height = 5 + broad * 12 + detail * 3 + medium * 5;
+    if (biome === 'mountains') height += ridge * 20 + broad * 10;
+    if (biome === 'desert') height = 6 + broad * 7 + detail * 2 + medium * 3;
+    if (biome === 'plains') height = 7 + broad * 8 + detail * 2 + medium * 4;
+    if (biome === 'forest') height = 7 + broad * 9 + detail * 2 + medium * 4;
+    if (biome === 'taiga') height = 8 + broad * 10 + detail * 2 + medium * 4;
+    if (biome === 'savanna') height = 6 + broad * 7 + detail * 2 + medium * 3;
     return Math.floor(height);
   }
 
@@ -152,14 +156,14 @@ export class VoxelWorld {
     const centerX = Math.round(this.spawn.x);
     const centerZ = Math.round(this.spawn.z);
     const touched = new Set();
-    for (let x = centerX - 3; x <= centerX + 3; x += 1) {
-      for (let z = centerZ - 3; z <= centerZ + 3; z += 1) {
+    for (let x = centerX - 5; x <= centerX + 5; x += 1) {
+      for (let z = centerZ - 5; z <= centerZ + 5; z += 1) {
         const ground = this.terrainHeight(x, z);
         const cx = floorDiv(x, CHUNK_SIZE);
         const cz = floorDiv(z, CHUNK_SIZE);
         const chunk = this.getChunk(cx, cz);
         if (!chunk) continue;
-        for (let y = ground + 1; y <= ground + 8; y += 1) chunk.blocks.delete(blockKey(x, y, z));
+        for (let y = ground + 1; y <= ground + 14; y += 1) chunk.blocks.delete(blockKey(x, y, z));
         touched.add(chunkKey(cx, cz));
       }
     }
@@ -279,12 +283,13 @@ export class VoxelWorld {
   generateFlora(chunk) {
     const startX = chunk.cx * CHUNK_SIZE;
     const startZ = chunk.cz * CHUNK_SIZE;
-    for (let x = startX - 3; x < startX + CHUNK_SIZE + 3; x += 1) {
-      for (let z = startZ - 3; z < startZ + CHUNK_SIZE + 3; z += 1) {
+    const extend = 5;
+    for (let x = startX - extend; x < startX + CHUNK_SIZE + extend; x += 1) {
+      for (let z = startZ - extend; z < startZ + CHUNK_SIZE + extend; z += 1) {
         const biome = this.getBiome(x, z);
         const y = this.terrainHeight(x, z);
         const chance = hash2(x, z, this.seed + 800);
-        if (Math.hypot(x - this.spawn.x, z - this.spawn.z) < 5) continue;
+        if (Math.hypot(x - this.spawn.x, z - this.spawn.z) < 7) continue;
         if (this.forcedVillage && Math.hypot(x - this.forcedVillage.x, z - this.forcedVillage.z) < 22) continue;
         if (y <= this.waterLevel) continue;
         if (biome === 'desert' && chance > 0.985) {
@@ -292,17 +297,80 @@ export class VoxelWorld {
           for (let oy = 1; oy <= h; oy += 1) this.setGenerated(chunk, x, y + oy, z, 'cactus');
           continue;
         }
-        const threshold = biome === 'forest' ? 0.91 : biome === 'taiga' ? 0.94 : biome === 'savanna' ? 0.972 : 0.984;
+        // Forest trees: less dense (0.94) so player can walk between them
+        // Taiga: moderate density, Plains/Savanna: sparse
+        const threshold = biome === 'forest' ? 0.94 : biome === 'taiga' ? 0.95 : biome === 'savanna' ? 0.976 : 0.986;
         if (!['forest', 'taiga', 'savanna', 'plains'].includes(biome) || chance < threshold) continue;
-        const trunkHeight = 3 + Math.floor(hash2(x, z, this.seed + 22) * 3);
-        for (let oy = 1; oy <= trunkHeight; oy += 1) this.setGenerated(chunk, x, y + oy, z, 'wood');
-        const radius = biome === 'taiga' ? 2 : 2;
-        for (let ox = -radius; ox <= radius; ox += 1) {
-          for (let oz = -radius; oz <= radius; oz += 1) {
-            for (let oy = -1; oy <= 2; oy += 1) {
-              if (Math.abs(ox) + Math.abs(oz) + Math.max(oy, 0) > 4) continue;
-              if (hash2(x + ox * 31, z + oz * 19, this.seed + oy) < 0.12) continue;
-              this.setGenerated(chunk, x + ox, y + trunkHeight + oy, z + oz, 'leaves');
+
+        // Biome-specific tree generation
+        if (biome === 'forest') {
+          // Tall oak-like trees: 6-10 blocks trunk, wide canopy high up
+          const trunkHeight = 6 + Math.floor(hash2(x, z, this.seed + 22) * 5);
+          for (let oy = 1; oy <= trunkHeight; oy += 1) this.setGenerated(chunk, x, y + oy, z, 'wood');
+          const radius = 3;
+          for (let ox = -radius; ox <= radius; ox += 1) {
+            for (let oz = -radius; oz <= radius; oz += 1) {
+              for (let oy = -1; oy <= 3; oy += 1) {
+                const dist = Math.abs(ox) + Math.abs(oz) + Math.max(oy, 0);
+                if (dist > 5) continue;
+                if (ox === 0 && oz === 0 && oy < 0) continue;
+                if (hash2(x + ox * 31, z + oz * 19, this.seed + oy) < 0.1) continue;
+                this.setGenerated(chunk, x + ox, y + trunkHeight + oy, z + oz, 'leaves');
+              }
+            }
+          }
+        } else if (biome === 'taiga') {
+          // Tall, narrow spruce-like trees: 7-11 blocks trunk, conical canopy
+          const trunkHeight = 7 + Math.floor(hash2(x, z, this.seed + 22) * 5);
+          for (let oy = 1; oy <= trunkHeight + 1; oy += 1) this.setGenerated(chunk, x, y + oy, z, 'wood');
+          // Conical shape: wider at bottom, narrower at top, starts high
+          for (let oy = -Math.floor(trunkHeight * 0.25); oy <= 2; oy += 1) {
+            const layerFromTop = 2 - oy;
+            const radius = Math.min(3, Math.floor(layerFromTop * 0.4) + 1);
+            for (let ox = -radius; ox <= radius; ox += 1) {
+              for (let oz = -radius; oz <= radius; oz += 1) {
+                if (ox === 0 && oz === 0) continue;
+                const dist = Math.abs(ox) + Math.abs(oz);
+                if (dist > radius + 1) continue;
+                if (hash2(x + ox * 31, z + oz * 19, this.seed + oy) < 0.08) continue;
+                this.setGenerated(chunk, x + ox, y + trunkHeight + oy, z + oz, 'leaves');
+              }
+            }
+          }
+          // Top leaf cap
+          this.setGenerated(chunk, x, y + trunkHeight + 2, z, 'leaves');
+          this.setGenerated(chunk, x, y + trunkHeight + 3, z, 'leaves');
+        } else if (biome === 'savanna') {
+          // Acacia-like trees: tall trunk, flat wide canopy
+          const trunkHeight = 5 + Math.floor(hash2(x, z, this.seed + 22) * 4);
+          for (let oy = 1; oy <= trunkHeight; oy += 1) this.setGenerated(chunk, x, y + oy, z, 'wood');
+          // Flat canopy, wide radius
+          const radius = 3 + Math.floor(hash2(x, z, this.seed + 33) * 2);
+          for (let ox = -radius; ox <= radius; ox += 1) {
+            for (let oz = -radius; oz <= radius; oz += 1) {
+              const dist = Math.abs(ox) + Math.abs(oz);
+              if (dist > radius + 1) continue;
+              if (hash2(x + ox * 31, z + oz * 19, this.seed + 55) < 0.15) continue;
+              // Only 1-2 layers thick (flat canopy)
+              this.setGenerated(chunk, x + ox, y + trunkHeight, z + oz, 'leaves');
+              if (dist <= radius - 1 && hash2(x + ox * 11, z + oz * 23, this.seed + 66) > 0.3) {
+                this.setGenerated(chunk, x + ox, y + trunkHeight + 1, z + oz, 'leaves');
+              }
+            }
+          }
+        } else {
+          // Plains: medium trees, 5-7 blocks trunk, round canopy
+          const trunkHeight = 5 + Math.floor(hash2(x, z, this.seed + 22) * 3);
+          for (let oy = 1; oy <= trunkHeight; oy += 1) this.setGenerated(chunk, x, y + oy, z, 'wood');
+          const radius = 2;
+          for (let ox = -radius; ox <= radius; ox += 1) {
+            for (let oz = -radius; oz <= radius; oz += 1) {
+              for (let oy = 0; oy <= 2; oy += 1) {
+                const dist = Math.abs(ox) + Math.abs(oz) + Math.max(oy, 0);
+                if (dist > 4) continue;
+                if (hash2(x + ox * 31, z + oz * 19, this.seed + oy) < 0.12) continue;
+                this.setGenerated(chunk, x + ox, y + trunkHeight + oy, z + oz, 'leaves');
+              }
             }
           }
         }
