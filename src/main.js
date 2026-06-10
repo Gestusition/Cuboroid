@@ -68,7 +68,7 @@ composer.addPass(bloomPass);
 composer.addPass(new OutputPass());
 
 loadingStatus.textContent = 'Chunk çekirdeği hazırlanıyor...';
-const world = new VoxelWorld(scene, { seed: 48271, viewDistance: 8 });
+const world = new VoxelWorld(scene, { seed: 48271, viewDistance: 5 });
 world.generateInitial();
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
@@ -519,7 +519,8 @@ function toolSpeed(block) {
   const item = selectedItem();
   const tool = ITEMS[item?.id];
   if (!BLOCKS[block.type].tool) return 1;
-  return tool?.tool === BLOCKS[block.type].tool ? tool.power || 1 : 0.35;
+  // Bare-hand breaking of tool-required blocks is slow but possible
+  return tool?.tool === BLOCKS[block.type].tool ? tool.power || 1 : 0.65;
 }
 
 function updateBreaking(delta) {

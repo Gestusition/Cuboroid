@@ -581,14 +581,14 @@ export class VoxelWorld {
       needed.sort((a, b) => a.distance - b.distance);
       this.pending.push(...needed);
     }
-    const chunksPerFrame = 6;
+    const chunksPerFrame = 2;
     for (let i = 0; i < chunksPerFrame && this.pending.length; i++) {
       const next = this.pending.shift();
       this.createChunk(next.cx, next.cz);
     }
     for (const [key, chunk] of this.chunks) {
       const distance = Math.max(Math.abs(chunk.cx - cx), Math.abs(chunk.cz - cz));
-      if (distance > this.viewDistance + 3) {
+      if (distance > this.viewDistance + 2) {
         for (const mesh of chunk.meshes) {
           this.instanceLookup.delete(mesh.uuid);
           const index = this.meshes.indexOf(mesh);

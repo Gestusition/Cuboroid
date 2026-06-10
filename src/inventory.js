@@ -54,8 +54,9 @@ export class Inventory {
         this.slots[index] = { id, count: 64 };
       });
     } else {
-      this.slots[0] = { id: 'wooden_pickaxe', count: 1, durability: 60 };
-      this.slots[1] = { id: 'apple', count: 3 };
+      this.slots[0] = { id: 'wooden_axe', count: 1, durability: 60 };
+      this.slots[1] = { id: 'wooden_pickaxe', count: 1, durability: 60 };
+      this.slots[2] = { id: 'apple', count: 5 };
     }
   }
 
