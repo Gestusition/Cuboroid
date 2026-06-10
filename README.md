@@ -1,42 +1,50 @@
-# Cuboroid: The Awakening
+# Cuboroid
 
-Three.js ile geliştirilen, GitHub Pages üzerinde çalışan sinematik voxel survival oyunu.
+> ⚠️ **Alpha Release** — This is an experimental, Minecraft-inspired voxel project built entirely in the browser. Expect bugs, missing features, and frequent changes.
 
-## Özellikler
+A browser-based voxel survival game powered by [Three.js](https://threejs.org/) and deployed on GitHub Pages. Cuboroid explores procedural world generation, survival mechanics, and real-time 3D rendering — all without any native downloads.
 
-- Oyuncunun çevresinde yüklenip kaldırılan sonsuz chunk dünyası
-- Ova, orman, çöl, tayga, savan ve dağ biyomları
-- Mağaralar, cevherler, köyler, tarlalar, harabeler ve çöl tapınakları
-- Gündüz/gece döngüsü ve dinamik güneş, ay, yıldız, sis ve su
-- Gündüz çalışan, gece evine dönen köylüler
-- Gece ortaya çıkan düşmanlar ile pasif koyun ve yaban domuzları
-- Survival ve Creative modları
-- Sağlık, açlık, doygunluk, deneyim, beslenme ve düşme hasarı
-- 27 slot envanter, 9 slot hotbar, araç dayanıklılığı ve crafting tarifleri
-- Blok kırma/yerleştirme, yüzme, koşma, zıplama ve Creative uçuşu
-- Tarayıcıda yerel dünya, envanter ve oyuncu durumu kaydı
+## 🎮 Features
 
-## Çalıştırma
+- **Infinite procedural world** with chunk loading/unloading around the player
+- **6 biomes** — Plains, Forest, Desert, Taiga, Savanna, and Mountains
+- **World structures** — Caves, ores, villages, farms, ruins, and desert temples
+- **Day/night cycle** with dynamic sun, moon, stars, fog, and water
+- **NPCs & Mobs** — Villagers that work by day and return home at night, hostile enemies that spawn at night, passive sheep and wild boars
+- **Survival & Creative modes**
+- **Survival mechanics** — Health, hunger, saturation, XP, nutrition, and fall damage
+- **Inventory system** — 27-slot inventory, 9-slot hotbar, tool durability, and crafting recipes
+- **Player actions** — Block breaking/placing, swimming, sprinting, jumping, and Creative flight
+- **Procedural audio** — Synthesized footsteps, block interactions, mob sounds, and ambient music
+- **Local save system** — World, inventory, and player state saved in the browser
+
+## 🚀 Getting Started
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Kontroller
+## 🎹 Controls
 
-- `WASD`: Hareket
-- `Space`: Zıpla / yüz
-- `Shift`: Koş
-- Creative modunda çift `Space`: Uçuşu aç/kapat
-- Creative uçuşunda `Ctrl`: Alçal
-- Sol tık: Blok kır / yaratığa vur
-- Sağ tık: Blok yerleştir / yemek ye / köylüyle takas
-- `1-9` veya fare tekerleği: Hotbar seçimi
-- `E`: Envanter ve crafting
-- `H`: Fotoğraf modu
-- `Esc`: Duraklat
+| Key | Action |
+|-----|--------|
+| `W A S D` | Move |
+| `Space` | Jump / Swim |
+| `Shift` | Sprint |
+| `Double Space` | Toggle flight (Creative) |
+| `Ctrl` | Descend while flying |
+| `Left Click` | Break block / Attack mob |
+| `Right Click` | Place block / Eat food / Trade with villager |
+| `1-9` or `Scroll` | Hotbar selection |
+| `E` | Inventory & Crafting |
+| `H` | Photo mode |
+| `Esc` | Pause |
 
-## GitHub Pages
+## 📦 Deployment
 
-Repo ayarlarında **Settings > Pages > Source** bölümünü **GitHub Actions** olarak seçin. `main` dalına yapılan her gönderim otomatik dağıtılır.
+This project auto-deploys to GitHub Pages via GitHub Actions on every push to `main`. To set it up in your own fork, go to **Settings > Pages > Source** and select **GitHub Actions**.
+
+## 📝 License
+
+[MIT](LICENSE)
