@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Cuboroid: The Awakening - Tarayıcıda çalışan sinematik voxel macerası."
+    />
+    <meta name="theme-color" content="#10171a" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%238ff4d6' d='M10 18 32 6l22 12v28L32 58 10 46z'/%3E%3Cpath fill='%2335a999' d='m10 18 22 13v27L10 46z'/%3E%3Cpath fill='%2369d8c3' d='m54 18-22 13v27l22-12z'/%3E%3C/svg%3E" />
+    <title>Cuboroid: The Awakening</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas" aria-label="Cuboroid oyun dünyası"></canvas>
+
+      <div id="cinematic-bars" aria-hidden="true">
+        <div class="bar bar-top"></div>
+        <div class="bar bar-bottom"></div>
+      </div>
+
+      <section id="landing" class="screen">
+        <div class="landing-noise"></div>
+        <div class="landing-content">
+          <div class="eyebrow">BİR TARAYICI MACERASI</div>
+          <h1><span>CUBOROID</span><small>THE AWAKENING</small></h1>
+          <p class="tagline">Her blok bir iz bırakır. Her ufuk yeni bir hikâye saklar.</p>
+          <div class="mode-picker">
+            <button class="mode-card active" data-mode="survival" type="button">
+              <strong>SURVIVAL</strong><span>Topla, üret, hayatta kal</span>
+            </button>
+            <button class="mode-card" data-mode="creative" type="button">
+              <strong>CREATIVE</strong><span>Uç, inşa et, sınırsız ol</span>
+            </button>
+          </div>
+          <button id="enter-button" class="primary-button" type="button">
+            <span>DÜNYAYI OLUŞTUR</span>
+            <kbd>ENTER</kbd>
+          </button>
+          <div class="landing-meta">
+            <span>PROSEDÜREL DÜNYA</span>
+            <span class="meta-dot"></span>
+            <span>SONSUZ YARATICILIK</span>
+            <span class="meta-dot"></span>
+            <span>WEBGL</span>
+          </div>
+        </div>
+        <div class="scroll-hint"><span></span> SİNEMATİK VOXEL DENEYİMİ</div>
+      </section>
+
+      <div id="hud" class="is-hidden">
+        <header class="hud-top">
+          <div class="location-card glass">
+            <div class="compass">N</div>
+            <div>
+              <span class="hud-label">BÖLGE</span>
+              <strong id="biome-name">YANKI VADİSİ</strong>
+            </div>
+          </div>
+          <div class="objective glass">
+            <span class="objective-index">01</span>
+            <div>
+              <span class="hud-label">KEŞİF</span>
+              <strong id="objective-text">Yakındaki yerleşimi keşfet</strong>
+            </div>
+          </div>
+        </header>
+
+        <div id="crosshair" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+        <aside class="controls-card glass">
+          <span class="hud-label">KONTROLLER</span>
+          <div><kbd>WASD</kbd><span>Hareket</span></div>
+          <div><kbd>SPACE</kbd><span>Zıpla</span></div>
+          <div><kbd>SHIFT</kbd><span>Koş</span></div>
+          <div><kbd>SOL / SAĞ</kbd><span>Kır / Yerleştir</span></div>
+          <div><kbd>E</kbd><span>Envanter / Üretim</span></div>
+          <div><kbd>ESC</kbd><span>İmleci bırak</span></div>
+        </aside>
+
+        <div id="interaction-label">ÇİM BLOĞU</div>
+        <div id="toast" role="status"></div>
+
+        <footer class="hud-bottom">
+          <div class="survival-bars glass">
+            <div class="stat-row"><span class="heart">◆</span><div class="meter health-meter"><i id="health-fill"></i></div><strong id="health-value">20</strong></div>
+            <div class="stat-row"><span class="hunger-icon">◒</span><div class="meter hunger-meter"><i id="hunger-fill"></i></div><strong id="hunger-value">20</strong></div>
+          </div>
+          <div id="hotbar" class="hotbar glass" aria-label="Blok seçimi"></div>
+          <div class="world-clock glass">
+            <span class="sun-icon">☼</span>
+            <div>
+              <span id="day-label" class="hud-label">GÜNDÜZ</span>
+              <strong id="clock">08:00 · 1. GÜN</strong>
+            </div>
+          </div>
+        </footer>
+        <div class="xp-bar"><i id="xp-fill"></i><span id="level-value">0</span></div>
+      </div>
+
+      <section id="inventory-screen" class="screen is-hidden">
+        <div class="inventory-panel glass">
+          <header>
+            <div><span class="eyebrow">OYUNCU ÇANTASI</span><h2>ENVANTER & ÜRETİM</h2></div>
+            <button id="inventory-close" class="close-button" type="button">KAPAT <kbd>E</kbd></button>
+          </header>
+          <div class="inventory-layout">
+            <div>
+              <span class="panel-label">ENVANTER</span>
+              <div id="inventory-grid" class="inventory-grid"></div>
+            </div>
+            <div class="crafting-panel">
+              <span class="panel-label">ÜRETİLEBİLİRLER</span>
+              <div id="recipe-list" class="recipe-list"></div>
+            </div>
+          </div>
+          <p class="inventory-tip">Yiyeceği seçip sağ tıklayarak tüket. Creative modunda çift Space uçuşu açar, Ctrl alçaltır.</p>
+        </div>
+      </section>
+
+      <section id="pause" class="screen is-hidden">
+        <div class="pause-panel glass">
+          <span class="eyebrow">OYUN DURAKLATILDI</span>
+          <h2>Yankı Vadisi<br />seni bekliyor.</h2>
+          <button id="resume-button" class="primary-button" type="button">
+            <span>DEVAM ET</span><kbd>ESC</kbd>
+          </button>
+          <button id="photo-button" class="text-button" type="button">ARAYÜZÜ GİZLE / GÖSTER <kbd>H</kbd></button>
+          <button id="save-button" class="text-button" type="button">DÜNYAYI KAYDET</button>
+          <div class="audio-settings">
+            <div class="setting-row">
+              <label for="volume-sfx">SES EFEKTLERİ <span id="val-sfx">70%</span></label>
+              <input type="range" id="volume-sfx" min="0" max="100" value="70">
+            </div>
+            <div class="setting-row">
+              <label for="volume-music">MÜZİK <span id="val-music">50%</span></label>
+              <input type="range" id="volume-music" min="0" max="100" value="50">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="death-screen" class="screen is-hidden">
+        <div class="pause-panel death-panel glass">
+          <span class="eyebrow">YOLCULUK SONA ERDİ</span>
+          <h2>Yankıların arasında<br />kayboldun.</h2>
+          <button id="respawn-button" class="primary-button" type="button"><span>YENİDEN DOĞ</span></button>
+        </div>
+      </section>
+
+      <div id="loading" class="screen">
+        <div class="loader-mark"><i></i><i></i><i></i></div>
+        <strong>DÜNYA ŞEKİLLENİYOR</strong>
+        <span id="loading-status">Işık toplanıyor...</span>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
