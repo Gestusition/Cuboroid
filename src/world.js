@@ -129,13 +129,23 @@ export class VoxelWorld {
     this.findSpawn();
     const cx = floorDiv(this.spawn.x, CHUNK_SIZE);
     const cz = floorDiv(this.spawn.z, CHUNK_SIZE);
-    for (let dz = -this.viewDistance; dz <= this.viewDistance; dz += 1) {
-      for (let dx = -this.viewDistance; dx <= this.viewDistance; dx += 1) {
+    const immediateRadius = 3;
+    for (let dz = -immediateRadius; dz <= immediateRadius; dz += 1) {
+      for (let dx = -immediateRadius; dx <= immediateRadius; dx += 1) {
         this.createChunk(cx + dx, cz + dz);
       }
     }
     this.clearSpawnArea();
     this.lastPlayerChunk = chunkKey(cx, cz);
+    const deferred = [];
+    for (let dz = -this.viewDistance; dz <= this.viewDistance; dz += 1) {
+      for (let dx = -this.viewDistance; dx <= this.viewDistance; dx += 1) {
+        if (Math.abs(dx) <= immediateRadius && Math.abs(dz) <= immediateRadius) continue;
+        deferred.push({ cx: cx + dx, cz: cz + dz, distance: Math.abs(dx) + Math.abs(dz) });
+      }
+    }
+    deferred.sort((a, b) => a.distance - b.distance);
+    this.pending.push(...deferred);
   }
 
   clearSpawnArea() {
@@ -503,7 +513,7 @@ export class VoxelWorld {
       needed.sort((a, b) => a.distance - b.distance);
       this.pending.push(...needed);
     }
-    const chunksPerFrame = 4;
+    const chunksPerFrame = 6;
     for (let i = 0; i < chunksPerFrame && this.pending.length; i++) {
       const next = this.pending.shift();
       this.createChunk(next.cx, next.cz);
